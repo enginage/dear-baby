@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return { error: null }
     } catch (error) {
-      return { error }
+      return { error: error instanceof Error ? error : new Error(String(error)) }
     }
   }
 
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Sign in error:', error)
-        return { error }
+        return { error: error instanceof Error ? error : new Error(String(error)) }
       }
 
       // 로그인 성공 시 사용자 프로필 가져오기
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null }
     } catch (error) {
       console.error('Sign in error:', error)
-      return { error }
+      return { error: error instanceof Error ? error : new Error(String(error)) }
     }
   }
 
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
-        return { error: 'Not authenticated' }
+        return { error: new Error('Not authenticated') }
       }
 
       const response = await fetch('/api/users/profile', {
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!response.ok) {
         const errorData = await response.json()
-        return { error: errorData.error || 'Failed to update profile' }
+        return { error: new Error(errorData.error || 'Failed to update profile') }
       }
 
       const { user: updatedUser } = await response.json()
@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null }
     } catch (error) {
       console.error('Error updating profile:', error)
-      return { error: 'Failed to update profile' }
+      return { error: error instanceof Error ? error : new Error('Failed to update profile') }
     }
   }
 
