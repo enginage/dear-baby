@@ -13,7 +13,7 @@ export async function GET(
       .from('comments')
       .select(`
         *,
-        author:users(name)
+        author:users(name, profile_image)
       `)
       .eq('post_id', id)
       .order('created_at', { ascending: true })
@@ -53,7 +53,7 @@ export async function POST(
       })
       .select(`
         *,
-        author:users(name)
+        author:users(name, profile_image)
       `)
       .single()
 

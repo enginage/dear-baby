@@ -7,6 +7,7 @@ import { Post, Comment } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
 import CommentComponent from '@/components/Comment'
 import { formatKSTDate } from '@/utils/timezone'
+import { supabase } from '@/lib/supabase'
 
 export default function PostDetailPage() {
   const params = useParams()
@@ -18,6 +19,10 @@ export default function PostDetailPage() {
   const [commentContent, setCommentContent] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState('')
+  const [editContent, setEditContent] = useState('')
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -107,6 +112,62 @@ export default function PostDetailPage() {
     }
   }
 
+  const handleEditClick = () => {
+    if (post) {
+      setEditTitle(post.title)
+      setEditContent(post.content)
+      setIsEditing(true)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditTitle('')
+    setEditContent('')
+  }
+
+  const handleUpdatePost = async () => {
+    if (!post || !editTitle.trim() || !editContent.trim() || isUpdating || !user) return
+
+    setIsUpdating(true)
+    try {
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        alert('인증이 필요합니다.')
+        return
+      }
+
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          content: editContent.trim(),
+        }),
+      })
+
+      if (response.ok) {
+        const { post: updatedPost } = await response.json()
+        setPost(updatedPost)
+        setIsEditing(false)
+        setEditTitle('')
+        setEditContent('')
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || '글 수정에 실패했습니다.')
+      }
+    } catch (error) {
+      console.error('Error updating post:', error)
+      alert('글 수정 중 오류가 발생했습니다.')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const handleDeletePost = async () => {
     if (!user || !post || isDeleting) return
     
@@ -175,25 +236,87 @@ export default function PostDetailPage() {
             <span>{post.author?.name || 'Unknown'}</span>
           </div>
           
-          {/* Delete button - only show for post author */}
+          {/* Action buttons - only show for post author */}
           {user && user.id === post.author_id && (
-            <button
-              onClick={handleDeletePost}
-              disabled={isDeleting}
-              className="flex items-center space-x-1 text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-50"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>{isDeleting ? '삭제 중...' : '글 삭제'}</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              {!isEditing && (
+                <button
+                  onClick={handleEditClick}
+                  className="flex items-center space-x-1 text-blue-500 hover:text-blue-700 font-medium text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span>수정</span>
+                </button>
+              )}
+              <button
+                onClick={handleDeletePost}
+                disabled={isDeleting}
+                className="flex items-center space-x-1 text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>{isDeleting ? '삭제 중...' : '글 삭제'}</span>
+              </button>
+            </div>
           )}
         </div>
         
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">{post.title}</h1>
-        <div className="prose max-w-none">
-          <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
-        </div>
+        {isEditing ? (
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="edit-title" className="block text-sm font-medium text-gray-700 mb-2">
+                제목
+              </label>
+              <input
+                id="edit-title"
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="제목을 입력하세요"
+              />
+            </div>
+            <div>
+              <label htmlFor="edit-content" className="block text-sm font-medium text-gray-700 mb-2">
+                내용
+              </label>
+              <textarea
+                id="edit-content"
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={8}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                placeholder="내용을 입력하세요"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleUpdatePost}
+                disabled={isUpdating || !editTitle.trim() || !editContent.trim()}
+                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdating ? '수정 중...' : '수정 완료'}
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">{post.title}</h1>
+            <div className="prose max-w-none">
+              <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Comment Form */}

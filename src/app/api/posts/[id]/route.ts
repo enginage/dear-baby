@@ -48,6 +48,33 @@ export async function PUT(
       )
     }
 
+    // Get current post to check ownership
+    const { data: currentPost, error: fetchError } = await supabaseAdmin
+      .from('posts')
+      .select('author_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw fetchError
+
+    // Get user from auth header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if user is the author
+    if (user.id !== currentPost.author_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { data, error } = await supabaseAdmin
       .from('posts')
       .update({

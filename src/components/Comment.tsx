@@ -42,10 +42,18 @@ export default function Comment({ comment, onDelete }: CommentProps) {
   return (
     <div className="border-b border-gray-200 py-4 last:border-b-0">
       <div className="flex items-start space-x-3">
-        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-medium text-gray-700">
-            {comment.author?.name?.charAt(0).toUpperCase() || 'U'}
-          </span>
+        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {comment.author?.profile_image ? (
+            <img 
+              src={comment.author.profile_image} 
+              alt={comment.author.name || 'User'} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-sm font-medium text-gray-700">
+              {comment.author?.name?.charAt(0).toUpperCase() || 'U'}
+            </span>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
