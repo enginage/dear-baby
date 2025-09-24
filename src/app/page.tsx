@@ -1,15 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Post } from '@/types'
 import PostCard from '@/components/PostCard'
 import PostForm from '@/components/PostForm'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
   const { user } = useAuth()
-  const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -22,9 +20,9 @@ export default function HomePage() {
     fetchPosts()
     fetchUserCount()
     fetchTotalPostCount()
-  }, [user])
+  }, [user, fetchPosts, fetchUserCount, fetchTotalPostCount])
 
-  const fetchPosts = async (query = '') => {
+  const fetchPosts = useCallback(async (query = '') => {
     try {
       setLoading(true)
       const userId = user?.id || ''
@@ -42,9 +40,9 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
-  const fetchUserCount = async () => {
+  const fetchUserCount = useCallback(async () => {
     try {
       const response = await fetch('/api/users/count')
       if (response.ok) {
@@ -54,9 +52,9 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error fetching user count:', error)
     }
-  }
+  }, [])
 
-  const fetchTotalPostCount = async () => {
+  const fetchTotalPostCount = useCallback(async () => {
     try {
       const response = await fetch('/api/posts/count')
       if (response.ok) {
@@ -66,7 +64,7 @@ export default function HomePage() {
     } catch (error) {
       console.error('Error fetching total post count:', error)
     }
-  }
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

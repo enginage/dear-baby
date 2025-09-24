@@ -49,9 +49,9 @@ export interface Dislike {
 export interface AuthContextType {
   user: User | null
   loading: boolean
-  signUp: (email: string, password: string, name: string, profileImage?: string | null) => Promise<{ error: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, name: string, profileImage?: string | null) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
-  updateProfile: (name: string, profileImage?: string | null) => Promise<{ error: any }>
+  updateProfile: (name: string, profileImage?: string | null) => Promise<{ error: Error | null }>
 }
 
