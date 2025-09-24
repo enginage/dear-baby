@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #dae0e6;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Reddit-style custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #878a8c;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b6d70;
+}
+
+/* Reddit-style buttons */
+.reddit-button {
+  @apply px-4 py-1.5 text-sm font-bold rounded-full border border-transparent transition-colors duration-200;
+}
+
+.reddit-button-primary {
+  @apply bg-blue-500 text-white hover:bg-blue-600;
+}
+
+.reddit-button-secondary {
+  @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+}
+
+.reddit-button-outline {
+  @apply border-gray-300 text-gray-700 hover:bg-gray-100;
+}
+
+/* Reddit-style post card */
+.reddit-post {
+  @apply bg-white border border-gray-300 rounded-md hover:border-gray-400 transition-colors duration-200;
+}
+
+/* Reddit-style vote buttons */
+.vote-button {
+  @apply w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 transition-colors duration-200;
+}
+
+.vote-button-up {
+  @apply text-gray-400 hover:text-orange-500;
+}
+
+.vote-button-down {
+  @apply text-gray-400 hover:text-blue-500;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
