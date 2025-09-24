@@ -156,7 +156,7 @@ export default function ProfilePage() {
               <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
               <p className="text-gray-600">{user.email}</p>
               <p className="text-sm text-gray-500">
-                가입일: {formatDate(user.created_at)}
+                가입일: {user.created_at ? formatKSTDate(user.created_at) : '알 수 없음'}
               </p>
             </div>
           </div>
