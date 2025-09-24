@@ -95,7 +95,7 @@ export default function ProfilePage() {
     try {
       const { error } = await updateProfile(editName.trim(), editProfileImage)
       if (error) {
-        setUpdateError(error)
+        setUpdateError(error.message || '프로필 업데이트 중 오류가 발생했습니다.')
       } else {
         setIsEditing(false)
         setEditName('')
