@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Post } from '@/types'
 import Link from 'next/link'
+import { formatKSTDate } from '@/utils/timezone'
 
 export default function ProfilePage() {
   const { user, loading, updateProfile } = useAuth()
