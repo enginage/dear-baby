@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Post, Comment } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
-import Comment from '@/components/Comment'
+import CommentComponent from '@/components/Comment'
 import { formatKSTDate } from '@/utils/timezone'
 
 export default function PostDetailPage() {
@@ -240,7 +240,7 @@ export default function PostDetailPage() {
         {comments.length > 0 ? (
           <div className="space-y-0">
             {comments.map((comment) => (
-              <Comment
+              <CommentComponent
                 key={comment.id}
                 comment={comment}
                 onDelete={handleDeleteComment}
