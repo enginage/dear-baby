@@ -16,12 +16,6 @@ export default function HomePage() {
   const [showPostForm, setShowPostForm] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
 
-  useEffect(() => {
-    fetchPosts()
-    fetchUserCount()
-    fetchTotalPostCount()
-  }, [user, fetchPosts, fetchUserCount, fetchTotalPostCount])
-
   const fetchPosts = useCallback(async (query = '') => {
     try {
       setLoading(true)
@@ -65,6 +59,12 @@ export default function HomePage() {
       console.error('Error fetching total post count:', error)
     }
   }, [])
+
+  useEffect(() => {
+    fetchPosts()
+    fetchUserCount()
+    fetchTotalPostCount()
+  }, [user, fetchPosts, fetchUserCount, fetchTotalPostCount])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
