@@ -65,15 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createUserProfile = async (userId: string) => {
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (!authUser) return
+      if (!authUser || !authUser.email) return
 
       const { data, error } = await supabase
         .from('users')
         .insert({
           id: userId,
-          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || '사용자',
+          name: authUser.user_metadata?.name || authUser.email.split('@')[0] || '사용자',
           email: authUser.email,
-          profile_image: authUser.user_metadata?.profile_image || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
