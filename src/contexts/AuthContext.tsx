@@ -45,10 +45,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        // 사용자가 users 테이블에 없는 경우, 기본 프로필 생성
+        if (error.code === 'PGRST116') {
+          console.log('User not found in users table, creating profile...')
+          await createUserProfile(userId)
+          return
+        }
+        throw error
+      }
       setUser(data)
     } catch (error) {
       console.error('Error fetching user profile:', error)
+      // 프로필을 가져올 수 없는 경우에도 로딩 상태를 해제
+      setLoading(false)
+    }
+  }
+
+  const createUserProfile = async (userId: string) => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) return
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || '사용자',
+          email: authUser.email,
+          profile_image: authUser.user_metadata?.profile_image || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      setUser(data)
+    } catch (error) {
+      console.error('Error creating user profile:', error)
     }
   }
 
@@ -90,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -97,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Sign in error:', error)
+        setLoading(false)
         return { error: error instanceof Error ? error : new Error(String(error)) }
       }
 
@@ -105,9 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchUserProfile(data.user.id)
       }
 
+      setLoading(false)
       return { error: null }
     } catch (error) {
       console.error('Sign in error:', error)
+      setLoading(false)
       return { error: error instanceof Error ? error : new Error(String(error)) }
     }
   }

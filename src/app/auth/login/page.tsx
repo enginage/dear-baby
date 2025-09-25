@@ -21,12 +21,20 @@ export default function LoginPage() {
     try {
       const { error } = await signIn(email, password)
       if (error) {
-        setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
+        console.error('Login error:', error)
+        if (error.message.includes('Invalid login credentials')) {
+          setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('이메일 인증이 필요합니다. 이메일을 확인해주세요.')
+        } else {
+          setError(`로그인에 실패했습니다: ${error.message}`)
+        }
       } else {
         router.push('/')
       }
     } catch (err) {
-      setError('로그인 중 오류가 발생했습니다.')
+      console.error('Login error:', err)
+      setError('로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setIsLoading(false)
     }
